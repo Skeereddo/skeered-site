@@ -252,7 +252,7 @@ const Portfolio = () => {
       try {
         // Fetch game stats
         const universeIds = games.map(game => game.universeId).join(',');
-        const statsResponse = await fetch(`http://localhost:3001/api/games?universeIds=${universeIds}`);
+        const statsResponse = await fetch(`https://misty-frog-d87f.zucconichristian36.workers.dev/api/games?universeIds=${universeIds}`);
         
         if (!statsResponse.ok) {
           throw new Error(`HTTP error! status: ${statsResponse.status}`);
@@ -261,7 +261,7 @@ const Portfolio = () => {
         const statsData = await statsResponse.json();
 
         // Fetch thumbnails
-        const thumbnailsResponse = await fetch(`http://localhost:3001/api/thumbnails?universeIds=${universeIds}`);
+        const thumbnailsResponse = await fetch(`https://misty-frog-d87f.zucconichristian36.workers.dev/api/thumbnails?universeIds=${universeIds}`);
         
         if (!thumbnailsResponse.ok) {
           throw new Error(`HTTP error! status: ${thumbnailsResponse.status}`);
