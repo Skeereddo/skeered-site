@@ -1,134 +1,166 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useLocation, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
 
-const DownloadContainer = styled.div`
+const DownloadContainer = styled(motion.div)`
   max-width: 800px;
-  margin: 4rem auto;
+  margin: 120px auto 0;
   padding: 2rem;
   background: #1a1a1a;
-  border-radius: 8px;
-  color: white;
-  text-align: center;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
-const DownloadButton = styled(motion.a)`
-  display: inline-block;
+const Title = styled.h2`
+  color: #fff;
+  text-align: center;
+  margin-bottom: 2rem;
+`;
+
+const FileList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const FileItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #2a2a2a;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #333;
+  }
+`;
+
+const FileInfo = styled.div`
+  h3 {
+    color: #fff;
+    margin: 0;
+    font-size: 1.1rem;
+  }
+`;
+
+const DownloadButton = styled(motion.button)`
   background: #4CAF50;
   color: white;
-  padding: 1rem 2rem;
-  border-radius: 4px;
-  text-decoration: none;
-  margin: 1rem;
-  cursor: pointer;
   border: none;
-  font-size: 1.1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease;
 
   &:hover {
     background: #45a049;
   }
+
+  &:disabled {
+    background: #666;
+    cursor: not-allowed;
+  }
 `;
 
-const DownloadGrid = styled.div`
-  display: grid;
-  gap: 1rem;
-  margin: 2rem 0;
+const ErrorMessage = styled.div`
+  color: #ff4444;
+  text-align: center;
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 4px;
 `;
 
-const DownloadItem = styled.div`
-  background: rgba(255, 255, 255, 0.05);
-  padding: 1.5rem;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+const SuccessMessage = styled.div`
+  color: #4CAF50;
+  text-align: center;
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 4px;
 `;
 
-const DownloadPage = () => {
-  const [isValid, setIsValid] = useState(false);
-  const [orderDetails, setOrderDetails] = useState(null);
-  const [purchasedItems, setPurchasedItems] = useState([]);
+const Download = () => {
+  const [downloading, setDownloading] = useState({});
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const orderId = searchParams.get('orderId');
+  const items = JSON.parse(decodeURIComponent(searchParams.get('items') || '[]'));
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const orderId = params.get('orderId');
-    const items = params.get('items');
-    
-    if (orderId && items) {
-      try {
-        const decodedItems = JSON.parse(decodeURIComponent(items));
-        setPurchasedItems(decodedItems);
-        setOrderDetails({
-          orderId,
-          purchaseDate: new Date().toLocaleString(),
-          status: 'completed'
-        });
-        setIsValid(true);
-      } catch (error) {
-        console.error('Error parsing items:', error);
-        setIsValid(false);
-      }
-    }
-  }, [location]);
+  const handleDownload = async (title) => {
+    setError(null);
+    setSuccessMessage(null);
+    setDownloading(prev => ({ ...prev, [title]: true }));
 
-  const handleDownload = (downloadPath, title) => {
     try {
-      const link = document.createElement('a');
-      link.href = downloadPath;
-      link.download = title.toLowerCase().replace(/\s+/g, '-') + '.rbxl';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const response = await fetch(
+        `https://misty-frog-d87f.zucconichristian36.workers.dev/api/download?orderId=${orderId}&file=${encodeURIComponent(title)}`,
+        {
+          method: 'GET',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(await response.text() || 'Download failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = title.toLowerCase().replace(/ /g, '-') + '.rbxl';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      setSuccessMessage(`Successfully downloaded ${title}!`);
     } catch (error) {
       console.error('Download error:', error);
-      alert('Failed to download the file. Please try again or contact support.');
+      setError(error.message || 'Failed to download file. Please try again.');
+    } finally {
+      setDownloading(prev => ({ ...prev, [title]: false }));
     }
   };
 
-  return (
-    <DownloadContainer>
-      {isValid ? (
-        <>
-          <h1>Thank you for your purchase!</h1>
-          {orderDetails && (
-            <div>
-              <p>Order ID: {orderDetails.orderId}</p>
-              <p>Purchase Date: {orderDetails.purchaseDate}</p>
-              <p>Status: {orderDetails.status}</p>
-            </div>
-          )}
-          
-          <DownloadGrid>
-            {purchasedItems.map((item, index) => (
-              <DownloadItem key={index}>
-                <div>
-                  <h3>{item.title}</h3>
-                  <p>Click the button to download</p>
-                </div>
-                <DownloadButton
-                  onClick={() => handleDownload(item.downloadPath, item.title)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Download
-                </DownloadButton>
-              </DownloadItem>
-            ))}
-          </DownloadGrid>
+  if (!orderId) {
+    return <Navigate to="/shop" replace />;
+  }
 
-          <p>
-            <small>
-              If you have any issues with the downloads, please contact support
-            </small>
-          </p>
-        </>
-      ) : (
-        <h1>Invalid download link</h1>
-      )}
+  return (
+    <DownloadContainer
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Title>Thank you for your purchase!</Title>
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {successMessage && <SuccessMessage>{successMessage}</SuccessMessage>}
+      <FileList>
+        {items.map((item, index) => (
+          <FileItem key={index}>
+            <FileInfo>
+              <h3>{item.title}</h3>
+            </FileInfo>
+            <DownloadButton
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              disabled={downloading[item.title]}
+              onClick={() => handleDownload(item.title)}
+            >
+              {downloading[item.title] ? 'Downloading...' : 'Download'}
+            </DownloadButton>
+          </FileItem>
+        ))}
+      </FileList>
     </DownloadContainer>
   );
 };
 
-export default DownloadPage; 
+export default Download; 

@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCheck, FaBox, FaList, FaGift, FaTicketAlt, FaBell, FaStore, FaChevronDown, FaInfoCircle, FaMagic, FaCogs, FaArchway, FaRecycle, FaLink, FaCode, FaUser, FaDatabase, FaBook, FaChevronUp, FaChevronLeft, FaChevronRight, FaDiscord } from 'react-icons/fa';
 import { useCart } from '../../context/CartContext';
-import Cart from '../Cart/Cart';
 
 const ShopSection = styled.section`
   min-height: 100vh;
@@ -435,85 +434,11 @@ const AddToCartButton = styled(motion.button)`
   }
 `;
 
-const CartIcon = styled(motion.div)`
-  position: fixed;
-  top: 2rem;
-  right: 2rem;
-  background: #333;
-  padding: 1rem;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 1000;
-  
-  span {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ff4444;
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-  }
-`;
-
-const SupportBanner = styled.div`
-  background: var(--accent-color);
-  padding: 1rem 2rem;
-  border-radius: 10px;
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    text-align: center;
-  }
-`;
-
-const SupportText = styled.div`
-  color: white;
-  
-  h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  p {
-    font-size: 0.9rem;
-    opacity: 0.9;
-  }
-`;
-
-const DiscordButton = styled.a`
-  background: white;
-  color: var(--accent-color);
-  padding: 0.8rem 1.5rem;
-  border-radius: 25px;
-  text-decoration: none;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-`;
-
 const Shop = () => {
   const [activeDoc, setActiveDoc] = useState('overview');
   const [showDocs, setShowDocs] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const { addToCart, cart } = useCart();
+  const { addToCart } = useCart();
 
   const shopImages = [
     {
@@ -1069,21 +994,8 @@ return Codes`}
     }
   };
 
-  const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
-
   return (
     <ShopSection>
-      <CartIcon
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setIsCartOpen(true)}
-      >
-        🛒
-        {cartItemsCount > 0 && <span>{cartItemsCount}</span>}
-      </CartIcon>
-
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-
       <Title>Shop</Title>
       <Description>
         All Products are complete with full source code, detailed documentation, and support.
@@ -1281,20 +1193,6 @@ return Codes`}
           </DocsSection>
         </motion.div>
       )}
-
-      <SupportBanner>
-        <SupportText>
-          <h3>Need Help? Join Our Discord Community!</h3>
-          <p>Get instant support, updates, and connect with other developers</p>
-        </SupportText>
-        <DiscordButton 
-          href="https://discord.gg/rVCFxVpf29" 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <FaDiscord /> Join Discord Server
-        </DiscordButton>
-      </SupportBanner>
     </ShopSection>
   );
 };

@@ -8,14 +8,26 @@
 	"main": "src/index.js",
 	"compatibility_date": "2025-04-17",
 	"vars": {
-		"PAYPAL_CLIENT_ID": "AVFOaoI3Mlo2ENrTVolaXcdtQtNXyh7GUn1oYkqUdHAMNDHkokf3WmlKKp_B6O9Uh_MiBgTyPOvn52H1",
-		"PAYPAL_CLIENT_SECRET": "EPmRjTlpLAWsE3zX5BL5e9L2C8zIvAG2lmHpdbjpPZTY-fxLIJkukH1vzi1hTCbCj-DIhJKg-xv5ZKTZ",
 		"CLIENT_URL": "https://www.skeered.net", 
-		"NODE_ENV": "production"
+		"NODE_ENV": "development",
+		"USE_SANDBOX": "true"
 	},
+	"r2_buckets": [
+		{
+			"binding": "ASSET_BUCKET",
+			"bucket_name": "skeered-products"
+		}
+	],
 	"observability": {
 		"enabled": true
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "skeered-db",
+			"database_id": "1ecf8e64-2188-464d-9ec7-9260e3758cd8"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

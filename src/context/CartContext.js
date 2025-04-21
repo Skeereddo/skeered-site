@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useState } from 'react';
 
-const CartContext = createContext();
+const CartContext = createContext(null);
 
 const cartReducer = (state, action) => {
   switch (action.type) {
@@ -13,29 +13,26 @@ const cartReducer = (state, action) => {
             item.id === action.payload.id
               ? { ...item, quantity: item.quantity + 1 }
               : item
-          ),
+          )
         };
       }
       return {
         ...state,
-        items: [...state.items, { 
-          ...action.payload, 
-          quantity: 1,
-        }],
+        items: [...state.items, { ...action.payload, quantity: 1 }]
       };
-    
+
     case 'REMOVE_FROM_CART':
       return {
         ...state,
-        items: state.items.filter(item => item.id !== action.payload),
+        items: state.items.filter(item => item.id !== action.payload)
       };
-    
+
     case 'CLEAR_CART':
       return {
         ...state,
-        items: [],
+        items: []
       };
-    
+
     default:
       return state;
   }
@@ -43,9 +40,11 @@ const cartReducer = (state, action) => {
 
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const addToCart = (item) => {
     dispatch({ type: 'ADD_TO_CART', payload: item });
+    setIsCartOpen(true);
   };
 
   const removeFromCart = (itemId) => {
@@ -68,11 +67,19 @@ export const CartProvider = ({ children }) => {
       addToCart, 
       removeFromCart, 
       clearCart,
-      getCartTotal 
+      getCartTotal,
+      isCartOpen,
+      setIsCartOpen
     }}>
       {children}
     </CartContext.Provider>
   );
 };
 
-export const useCart = () => useContext(CartContext); 
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+}; 

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
 import { PayPalButtons } from "@paypal/react-paypal-js";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const CartContainer = styled(motion.div)`
   position: fixed;
@@ -106,6 +107,36 @@ const ProcessingMessage = styled.div`
   color: #888;
 `;
 
+const EmptyCart = styled.div`
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+`;
+
+const LoginPrompt = styled.div`
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-top: 2rem;
+
+  p {
+    margin-bottom: 1rem;
+    color: #888;
+  }
+`;
+
+const LoginButton = styled(motion.button)`
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  width: 100%;
+`;
+
 const CartItem = ({ item, onRemove }) => {
   const itemTotal = (item.price * item.quantity) / 100; // Convert cents to dollars
 
@@ -132,123 +163,149 @@ const CartItem = ({ item, onRemove }) => {
 
 const Cart = ({ isOpen, onClose }) => {
   const { cart, removeFromCart, getCartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPayPal, setShowPayPal] = useState(false);
+
   const cartTotal = getCartTotal() / 100;
 
-  const handlePaymentSuccess = async (orderId) => {
-    try {
-      const response = await fetch('https://misty-frog-d87f.zucconichristian36.workers.dev/api/capture-paypal-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ orderID: orderId }),
-      });
+  useEffect(() => {
+    setShowPayPal(!!user);
+  }, [user]);
 
-      if (response.ok) {
-        // Include purchased items in the URL
-        const items = cart.map(item => ({
-          title: item.title,
-          downloadPath: item.downloadPath
-        }));
-        const encodedItems = encodeURIComponent(JSON.stringify(items));
-        clearCart();
-        onClose();
-        navigate(`/download?orderId=${orderId}&items=${encodedItems}`);
-      } else {
-        console.error('Payment capture failed');
-        alert('The payment could not be completed. Please try again or use a different payment method.');
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      alert('There was an error processing your payment. Please try again.');
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleLogin = () => {
+    localStorage.setItem('pendingCart', JSON.stringify(cart));
+    onClose();
+    navigate('/login');
   };
 
   return (
     <CartContainer
-      initial={{ x: 400 }}
-      animate={{ x: isOpen ? 0 : 400 }}
-      transition={{ type: "spring", damping: 20 }}
+      initial={{ x: '100%' }}
+      animate={{ x: isOpen ? 0 : '100%' }}
+      transition={{ type: 'tween' }}
     >
       <CartHeader>
         <h2>Your Cart</h2>
-        <CloseButton
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={onClose}
-        >
-          ×
-        </CloseButton>
+        <CloseButton onClick={onClose}>&times;</CloseButton>
       </CartHeader>
 
       {cart.length === 0 ? (
-        <p>Your cart is empty</p>
+        <EmptyCart>Your cart is empty</EmptyCart>
       ) : (
         <>
           {cart.map((item) => (
-            <CartItem 
-              key={item.id} 
-              item={item} 
-              onRemove={removeFromCart}
-            />
+            <CartItemContainer key={item.id}>
+              <div>
+                <h3>{item.title}</h3>
+                <p>${item.price / 100}</p>
+                {item.quantity > 1 && <p>Quantity: {item.quantity}</p>}
+              </div>
+              <RemoveButton
+                onClick={() => removeFromCart(item.id)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Remove
+              </RemoveButton>
+            </CartItemContainer>
           ))}
-          
+
           <TotalSection>
             <h3>Total: ${cartTotal.toFixed(2)}</h3>
           </TotalSection>
 
-          {isProcessing ? (
+          {!showPayPal ? (
+            <LoginPrompt>
+              <p>Please log in to complete your purchase</p>
+              <LoginButton
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogin}
+              >
+                Log In to Purchase
+              </LoginButton>
+            </LoginPrompt>
+          ) : isProcessing ? (
             <ProcessingMessage>
               Processing your payment...
             </ProcessingMessage>
           ) : (
             <PaymentSection>
-              <PaymentInfo>
-                <h4>Secure Payment with PayPal</h4>
-                <p>You can pay with PayPal or credit/debit card</p>
-              </PaymentInfo>
-              
               <PayPalButtons
-                fundingSource={undefined}
                 createOrder={async () => {
                   try {
-                    const response = await fetch('https://misty-frog-d87f.zucconichristian36.workers.dev/api/create-paypal-order', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        items: cart,
-                      }),
-                    });
+                    const response = await fetch(
+                      'https://misty-frog-d87f.zucconichristian36.workers.dev/api/create-paypal-order',
+                      {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${user.token}`
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          items: cart,
+                        }),
+                      }
+                    );
 
                     const data = await response.json();
-                    if (data.error) {
-                      throw new Error(data.error);
-                    }
+                    if (data.error) throw new Error(data.error);
                     return data.id;
                   } catch (error) {
                     console.error('Error creating order:', error);
-                    alert('Could not create order. Please try again.');
-                    throw error;
+                    return null; // Return null instead of throwing error
                   }
                 }}
-                onApprove={async (data, actions) => {
+                onApprove={async (data) => {
                   setIsProcessing(true);
-                  await handlePaymentSuccess(data.orderID);
+                  try {
+                    const response = await fetch(
+                      'https://misty-frog-d87f.zucconichristian36.workers.dev/api/capture-paypal-payment',
+                      {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${user.token}`
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          orderID: data.orderID
+                        }),
+                      }
+                    );
+
+                    if (!response.ok) {
+                      const errorData = await response.json();
+                      throw new Error(errorData.error || 'Payment capture failed');
+                    }
+
+                    const captureData = await response.json();
+                    if (captureData.status === 'COMPLETED') {
+                      clearCart();
+                      onClose();
+                      navigate('/dashboard');
+                    } else {
+                      throw new Error('Payment not completed');
+                    }
+                  } catch (error) {
+                    console.error('Payment error:', error);
+                    alert('There was an error processing your payment. Please try again.');
+                  } finally {
+                    setIsProcessing(false);
+                  }
                 }}
                 onCancel={() => {
+                  // Handle PayPal popup being closed
+                  console.log('Payment cancelled');
                   setIsProcessing(false);
-                  alert('Payment cancelled. You can try again when ready.');
                 }}
                 onError={(err) => {
+                  // Handle PayPal errors
                   console.error('PayPal error:', err);
                   setIsProcessing(false);
-                  alert('There was an error with PayPal. Please try again.');
                 }}
                 style={{
                   layout: "vertical",
