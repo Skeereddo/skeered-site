@@ -9,8 +9,8 @@
 	"compatibility_date": "2025-04-17",
 	"vars": {
 		"CLIENT_URL": "https://www.skeered.net", 
-		"NODE_ENV": "development",
-		"USE_SANDBOX": "true"
+		"NODE_ENV": "production",
+		"USE_SANDBOX": "false"
 	},
 	"r2_buckets": [
 		{
