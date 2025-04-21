@@ -31,10 +31,9 @@ function AnimatedRoutes() {
 }
 
 function App() {
-  console.log(process.env.REACT_APP_PAYPAL_CLIENT_ID);
   return (
     <PayPalScriptProvider options={{ 
-      "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID,
+      "client-id": "AVFOaoI3Mlo2ENrTVolaXcdtQtNXyh7GUn1oYkqUdHAMNDHkokf3WmlKKp_B6O9Uh_MiBgTyPOvn52H1",
       currency: "USD",
     }}>
       <CartProvider>
