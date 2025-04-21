@@ -7,6 +7,12 @@
 	"name": "misty-frog-d87f",
 	"main": "src/index.js",
 	"compatibility_date": "2025-04-17",
+	"vars": {
+		"PAYPAL_CLIENT_ID": "AVFOaoI3Mlo2ENrTVolaXcdtQtNXyh7GUn1oYkqUdHAMNDHkokf3WmlKKp_B6O9Uh_MiBgTyPOvn52H1",
+		"PAYPAL_CLIENT_SECRET": "EPmRjTlpLAWsE3zX5BL5e9L2C8zIvAG2lmHpdbjpPZTY-fxLIJkukH1vzi1hTCbCj-DIhJKg-xv5ZKTZ",
+		"CLIENT_URL": "http://localhost:3000",
+		"NODE_ENV": "production"
+	},
 	"observability": {
 		"enabled": true
 	}
