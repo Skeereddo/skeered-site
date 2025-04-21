@@ -460,8 +460,8 @@ const Shop = () => {
       id: 'shop_gifting_system',
       title: "Shop & Gifting System",
       description: "Complete shop system with gifting functionality, code redemption, and notifications.",
-      price: 2499, // Price in cents (0.50)
-      displayPrice: 24.99, // Price in dollars for display
+      price: 50, // Price in cents (0.50)
+      displayPrice: 0.50, // Price in dollars for display
       downloadPath: "/downloads/shop-&-gifting-system.rbxl", // Updated path to match actual file location
       features: [
         "SSA (Single Script Architecture)",

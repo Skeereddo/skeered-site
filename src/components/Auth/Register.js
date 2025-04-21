@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
 const LoginContainer = styled(motion.div)`
   max-width: 400px;
@@ -74,6 +75,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -118,9 +120,8 @@ const Register = () => {
 
       const loginData = await loginResponse.json();
       
-      // Store user data
-      localStorage.setItem('user_email', email);
-      localStorage.setItem('auth_token', loginData.token);
+      // Use the login function from AuthContext instead of directly setting localStorage
+      login(email, loginData.token);
       
       // Navigate to dashboard
       navigate('/dashboard');
