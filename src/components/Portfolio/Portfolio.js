@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import GameCard from './GameCard';
+import GroupCard from './GroupCard';
 import VideoShowcase from './VideoShowcase';
 
 const PortfolioSection = styled(motion.section)`
@@ -158,6 +159,13 @@ const VideoTitle = styled.h3`
   text-align: center;
 `;
 
+const GroupsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 4rem;
+`;
+
 const containerVariants = {
   initial: { opacity: 0 },
   animate: {
@@ -196,6 +204,30 @@ const Portfolio = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showingContent, setShowingContent] = useState('main'); // 'main', 'animations', 'vfx'
+
+  const groups = [
+    {
+      name: "Golden Games",
+      games: [
+        {
+          title: "Multiverse KO",
+          role: "Scripter"
+        },
+        {
+          title: "Monarch",
+          role: "Scripter"
+        },
+        {
+          title: "Friday Night Devs",
+          role: "Scripter"
+        },
+        {
+          title: "Conqueror's Battleground",
+          role: "Scripter"
+        }
+      ]
+    }
+  ];
 
   const games = [
     {
@@ -328,6 +360,19 @@ const Portfolio = () => {
             ))
           )}
         </GamesGrid>
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <SubTitle>👥 Groups Contributed</SubTitle>
+        <GroupsGrid>
+          {groups.map((group, index) => (
+            <GroupCard 
+              key={index} 
+              group={group} 
+              variants={itemVariants}
+            />
+          ))}
+        </GroupsGrid>
       </motion.div>
 
       <motion.div variants={itemVariants}>
